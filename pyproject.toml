@@ -1,0 +1,33 @@
+[project]
+name = "flux-workflow"
+version = "0.1.0"
+description = "工作流编排模块 - 前端编排 + 后端管理"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "pydantic>=2.5.0",
+    "sqlalchemy>=2.0.0",
+    "aiosqlite>=0.19.0",
+    "flux-agent>=0.2.0",
+    "sse-starlette>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["api*", "core*", "models*", "schemas*", "services*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"

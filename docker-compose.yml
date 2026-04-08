@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # 后端服务
+  backend:
+    container_name: flux-workflow-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8006:8006"
+    restart: always
+    environment:
+      - PORT=8006
+    volumes:
+      - ./kb_data:/app/kb_data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'

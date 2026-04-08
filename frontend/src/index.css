@@ -1,0 +1,274 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-tertiary: rgba(18, 18, 26, 0.95);
+  --text-primary: #f0f0f5;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --accent-primary: #6366f1;
+  --accent-secondary: #8b5cf6;
+  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.ant-layout {
+  background: var(--bg-primary) !important;
+}
+
+.ant-layout-sider {
+  background: linear-gradient(180deg, #12121a 0%, #0a0a0f 100%) !important;
+  border-right: 1px solid var(--border-color);
+}
+
+.ant-menu {
+  background: transparent !important;
+  border-right: none !important;
+}
+
+.ant-menu-item {
+  color: var(--text-secondary) !important;
+}
+
+.ant-menu-item-selected {
+  background: rgba(99, 102, 241, 0.1) !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-layout-header {
+  background: rgba(10, 10, 15, 0.8) !important;
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ant-btn-primary {
+  background: var(--accent-gradient) !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, #7c7ff7 0%, #9d6fff 100%) !important;
+}
+
+.ant-input,
+.ant-input-password,
+.ant-select-selector,
+.ant-picker {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+.ant-modal-content,
+.ant-drawer-content {
+  background: var(--bg-secondary) !important;
+}
+
+.ant-modal-header,
+.ant-drawer-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ant-table {
+  background: transparent !important;
+}
+
+.ant-table-thead > tr > th {
+  background: rgba(255, 255, 255, 0.02) !important;
+  color: var(--text-secondary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+.ant-table-thead > tr > th::before {
+  background: transparent !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+.ant-table-tbody > tr > td {
+  background: transparent !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+.ant-tag {
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.react-flow__node {
+  border-radius: 12px;
+}
+
+.react-flow__handle {
+  width: 8px;
+  height: 8px;
+}
+
+.react-flow__controls {
+  background: rgba(18, 18, 26, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.react-flow__minimap {
+  background: rgba(18, 18, 26, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.ant-form-item-label > label {
+  color: var(--text-primary) !important;
+}
+
+.ant-tabs-tab {
+  color: var(--text-secondary) !important;
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--text-primary) !important;
+}
+
+.ant-tabs-ink-bar {
+  background: var(--accent-primary) !important;
+}
+
+.ant-select-dropdown {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color);
+}
+
+.ant-select-item {
+  color: var(--text-primary) !important;
+}
+
+.ant-select-item-option-active {
+  background: rgba(99, 102, 241, 0.1) !important;
+}
+
+.ant-select-item-option-selected {
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-input-number {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.ant-input-number-input {
+  color: var(--text-primary) !important;
+}
+
+.ant-switch {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.ant-switch-checked {
+  background: var(--accent-primary);
+}
+
+.ant-popover-inner,
+.ant-popconfirm {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-popover-inner-content,
+.ant-popconfirm .ant-popover-message-title {
+  color: var(--text-primary) !important;
+}
+
+.ant-popover-arrow::before {
+  background: var(--bg-secondary) !important;
+}
+
+.ant-empty-description {
+  color: var(--text-secondary) !important;
+}
+
+.ant-timeline-item-content {
+  color: var(--text-primary);
+}
+
+.ant-collapse-header {
+  color: var(--text-secondary) !important;
+}
+
+.ant-collapse-content {
+  background: transparent !important;
+  color: var(--text-primary);
+}
+
+.ant-table-wrapper .ant-table-pagination {
+  color: var(--text-secondary);
+}
+
+.ant-pagination-item a {
+  color: var(--text-primary) !important;
+}
+
+.ant-pagination-item-active {
+  background: rgba(99, 102, 241, 0.15) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+.ant-pagination-item-active a {
+  color: var(--text-primary) !important;
+}
+
+.ant-btn-link {
+  color: var(--accent-primary) !important;
+}
+
+.ant-modal-mask {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.ant-message-notice-content {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
