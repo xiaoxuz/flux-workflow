@@ -15,11 +15,21 @@
 
 ## 功能特性
 
+### 工作流编排
 - 🔧 **可视化工作流编排** - 基于 @xyflow/react 的拖拽式编辑器
-- 🤖 **Agent 管理** - 可视化配置 ReAct Agent，支持对话调试
-- 🛠️ **工具管理** - 内置工具库 + 自定义 Python 代码工具
-- 📚 **知识库** - RAG 向量检索节点
 - 📊 **执行追踪** - 实时执行流 + 详细 Trace 追踪
+- 📋 **仪表盘** - 全局概览，快速掌握工作流运行状态
+
+### Agent 生态
+- 🤖 **Agent 管理** - 可视化配置 ReAct Agent，支持对话调试
+- 🚀 **Skill 管理** - 支持 ZIP 上传 / 在线编辑 / 实时同步至 Agent，Skill 可在 Agent 和工作流中引用
+- 🌐 **MCP Server 集成** - 支持 MCP 协议的 Server 注册与管理，扩展 Agent 工具能力
+
+### 工具与知识
+- 🛠️ **工具管理** - 内置工具库 + 自定义 Python 代码工具 + MCP Server 工具
+- 📚 **知识库** - RAG 向量检索节点，支持文档上传、向量化、在线检索
+  - 支持多种向量库后端
+  - LLM 节点可直接引用知识库进行 RAG 检索
 
 ## 访问地址
 
@@ -80,7 +90,11 @@ docker-compose --profile build up --build
 | 功能 | 路径 |
 |------|------|
 | 健康检查 | `/flux-workflow/api/health` |
+| 仪表盘 | `/flux-workflow/api/dashboard` |
 | 工作流 | `/flux-workflow/api/workflows` |
 | 执行 | `/flux-workflow/api/executions` |
+| Agent | `/flux-workflow/api/agents` |
 | 工具 | `/flux-workflow/api/tools` |
+| MCP Server | `/flux-workflow/api/mcp_servers` |
 | 知识库 | `/flux-workflow/api/knowledge_bases` |
+| Skill | `/flux-workflow/api/skills` |
