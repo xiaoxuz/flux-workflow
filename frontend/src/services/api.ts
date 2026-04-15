@@ -8,7 +8,8 @@ import type {
   KnowledgeBaseSearchResult,
   KnowledgeBaseAddTextsRequest,
 } from '../types/knowledgeBase';
-import type { Agent, AgentCreate, AgentUpdate, AgentChatResponse } from '../types/agents';
+import type { Agent, AgentCreate, AgentUpdate, AgentChatResponse, MCPServerConfig } from '../types/agents';
+import type { SkillSummary, SkillDetail, SkillCreateRequest } from '../types/skills';
 
 const api = axios.create({
   baseURL: '/flux-workflow/api',
@@ -96,6 +97,90 @@ export const agentsApi = {
   delete: (id: string) => api.delete(`/agents/${id}`),
   chat: (id: string, message: string, context?: Record<string, any>, sessionId?: string) =>
     api.post<AgentChatResponse>(`/agents/${id}/chat`, { message, context, session_id: sessionId }).then(r => r.data),
+  chatStream: async (
+    id: string,
+    message: string,
+    sessionId: string | undefined,
+    onStep: (step: any) => void,
+    onDone: (data: any) => void,
+    onError: (error: string) => void,
+  ) => {
+    const response = await fetch(`/flux-workflow/api/agents/${id}/chat/stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, session_id: sessionId }),
+    });
+
+    if (!response.ok) {
+      onError(`HTTP ${response.status}`);
+      return;
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      onError('不支持的响应流');
+      return;
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const parsed = JSON.parse(line.slice(6));
+              if (parsed.type === 'step') {
+                onStep(parsed.data);
+              } else if (parsed.type === 'done') {
+                onDone(parsed.data);
+              } else if (parsed.type === 'error') {
+                onError(parsed.data?.error || '未知错误');
+              }
+            } catch {
+              // 忽略解析错误
+            }
+          }
+        }
+      }
+    } catch (error: any) {
+      onError(error.message || '流读取失败');
+    }
+  },
+};
+
+export const mcpServersApi = {
+  list: () => api.get<{ servers: MCPServerConfig[]; total: number }>('/mcp-servers').then(r => r.data),
+  test: (config: MCPServerConfig) =>
+    api.post<{ success: boolean; tools: string[]; error?: string }>('/mcp-servers/test', { server: config }).then(r => r.data),
+};
+
+export const skillsApi = {
+  list: () => api.get<SkillSummary[]>('/skills').then(r => r.data),
+  get: (name: string) => api.get<SkillDetail>(`/skills/${name}`).then(r => r.data),
+  create: (data: SkillCreateRequest) => api.post('/skills', data).then(r => r.data),
+  upload: (file: File, overwrite = false) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post(`/skills/upload?overwrite=${overwrite}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then(r => r.data);
+  },
+  update: (name: string, data: Partial<SkillCreateRequest>) =>
+    api.put(`/skills/${name}`, data).then(r => r.data),
+  deletePreview: (name: string) =>
+    api.delete(`/skills/${name}?confirm=false`).then(r => r.data),
+  deleteConfirm: (name: string) =>
+    api.delete(`/skills/${name}?confirm=true`).then(r => r.data),
+  sync: () => api.post('/skills/sync').then(r => r.data),
 };
 
 export default api;

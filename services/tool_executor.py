@@ -59,7 +59,7 @@ class ToolExecutor:
     @classmethod
     async def _load_custom_tools(cls) -> Dict[str, Callable]:
         """从数据库加载自定义工具"""
-        from langchain_core.tools import BaseTool
+        from langchain_core.tools import BaseTool, tool
 
         tools = {}
 
@@ -69,19 +69,27 @@ class ToolExecutor:
             from sqlalchemy import select
 
             async with async_session_maker() as session:
-                result = await session.execute(select(CustomTool).where(CustomTool.is_builtin == 0))
+                result = await session.execute(select(CustomTool))
                 custom_tools = result.scalars().all()
 
-                for tool in custom_tools:
+                for ct in custom_tools:
                     try:
                         local_vars = {}
-                        exec(tool.code, {"__builtins__": __builtins__}, local_vars)
-                        tool_obj = local_vars.get(tool.name)
-                        if tool_obj is not None and isinstance(tool_obj, BaseTool):
-                            tools[tool.name] = tool_obj
-                            logger.debug(f"Loaded custom tool: {tool.name}")
+                        exec(ct.code, {"__builtins__": __builtins__}, local_vars)
+                        tool_obj = local_vars.get(ct.name)
+                        if tool_obj is None:
+                            continue
+                        if isinstance(tool_obj, BaseTool):
+                            tools[ct.name] = tool_obj
+                        elif callable(tool_obj):
+                            # 普通函数自动用 @tool 包装
+                            wrapped = tool(tool_obj)
+                            tools[ct.name] = wrapped
+                            logger.debug(f"Auto-wrapped custom tool: {ct.name}")
+                        else:
+                            logger.warning(f"Custom tool '{ct.name}' 不是可调用的函数或 BaseTool")
                     except Exception as e:
-                        logger.error(f"Failed to load custom tool {tool.name}: {e}")
+                        logger.error(f"Failed to load custom tool {ct.name}: {e}")
         except Exception as e:
             logger.error(f"Failed to load custom tools from database: {e}")
 

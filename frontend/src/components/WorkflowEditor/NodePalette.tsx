@@ -24,7 +24,7 @@ const nodeTypes = [
 
 const NodePalette: React.FC<NodePaletteProps> = ({ onAddNode }) => {
   return (
-    <div style={{ width: 180, background: 'rgba(18,18,26,0.6)', backdropFilter: 'blur(10px)', borderRight: '1px solid rgba(255,255,255,0.06)', padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ width: 180, background: 'rgba(18,18,26,0.6)', backdropFilter: 'blur(10px)', borderRight: '1px solid rgba(255,255,255,0.06)', padding: 16, display: 'flex', flexDirection: 'column', gap: 8, overflow: 'auto', height: '100%' }}>
       <div style={{ color: '#71717a', fontSize: 12, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>节点面板</div>
       {nodeTypes.map((node) => (
         <Tooltip key={node.type} title={node.desc} placement="right">

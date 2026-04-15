@@ -203,12 +203,26 @@ async def execute_workflow_async(execution_id: str, graph: Dict, inputs: Dict, d
             await ToolExecutor.load_all_tools(force_refresh=True)
             all_tools = ToolExecutor._tools_cache
 
+            # 加载所有知识库
+            from api.knowledge_bases import get_kb_config_from_model
+            from models import KnowledgeBaseModel
+            import os
+
+            kb_result = await session.execute(select(KnowledgeBaseModel))
+            all_kbs = kb_result.scalars().all()
+            knowledge_bases = {}
+            for kb in all_kbs:
+                if os.path.exists(os.path.join(kb.persist_directory, "chroma.sqlite3")):
+                    knowledge_bases[kb.name] = get_kb_config_from_model(kb)
+
             runner = WorkflowRunner(
                 config_dict=flux_config,
                 on_node_input=input_hook,
                 on_node_output=output_hook,
                 tools=all_tools,
+                knowledge_bases=knowledge_bases,
             )
+            print("===========", all_tools)
 
             initial_state = {
                 "data": inputs,

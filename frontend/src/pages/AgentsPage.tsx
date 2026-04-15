@@ -4,6 +4,9 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, MessageOutlined, TeamOutlin
 import { agentsApi } from '../services/api';
 import type { Agent } from '../types/agents';
 import ToolSelector from '../components/Tools/ToolSelector';
+import SkillSelector from '../components/Tools/SkillSelector';
+import MCPServerConfigPanel from '../components/MCP/MCPServerConfigPanel';
+import type { MCPServerConfig } from '../types/agents';
 
 const { TextArea } = Input;
 
@@ -52,6 +55,8 @@ const AgentsPage: React.FC<AgentsPageProps> = ({ onChat }) => {
       api_key: agent.api_key,
       system_prompt: agent.system_prompt,
       tools: agent.tools,
+      skills: agent.skills || [],
+      mcp_servers: agent.mcp_servers || [],
       max_steps: agent.max_steps,
       verbose: agent.verbose,
     });
@@ -141,6 +146,26 @@ const AgentsPage: React.FC<AgentsPageProps> = ({ onChat }) => {
       ),
     },
     {
+      title: '绑定 Skills',
+      dataIndex: 'skills',
+      key: 'skills',
+      render: (skills: string[]) => (
+        skills && skills.length > 0
+          ? skills.map(s => <Tag key={s} color="green">{s}</Tag>)
+          : <span style={{ color: '#71717a' }}>无</span>
+      ),
+    },
+    {
+      title: 'MCP 服务器',
+      dataIndex: 'mcp_servers',
+      key: 'mcp_servers',
+      render: (mcpServers: MCPServerConfig[]) => (
+        mcpServers && mcpServers.length > 0
+          ? <Tag color="purple">{mcpServers.length}</Tag>
+          : <span style={{ color: '#71717a' }}>无</span>
+      ),
+    },
+    {
       title: '创建时间',
       dataIndex: 'created_at',
       key: 'created_at',
@@ -227,6 +252,12 @@ const AgentsPage: React.FC<AgentsPageProps> = ({ onChat }) => {
           <Form.Item name="tools" label="绑定工具">
             <ToolSelector multiple placeholder="选择工具" />
           </Form.Item>
+          <Form.Item name="skills" label="绑定 Skill">
+            <SkillSelector placeholder="选择 Skill" />
+          </Form.Item>
+          <Form.Item name="mcp_servers" label="MCP 服务器">
+            <MCPServerConfigPanel />
+          </Form.Item>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <Form.Item name="max_steps" label="最大步数" initialValue={10}>
               <InputNumber min={1} max={50} style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#f0f0f5' }} />
@@ -286,6 +317,12 @@ const AgentsPage: React.FC<AgentsPageProps> = ({ onChat }) => {
           </Form.Item>
           <Form.Item name="tools" label="绑定工具">
             <ToolSelector multiple />
+          </Form.Item>
+          <Form.Item name="skills" label="绑定 Skill">
+            <SkillSelector placeholder="选择 Skill" />
+          </Form.Item>
+          <Form.Item name="mcp_servers" label="MCP 服务器">
+            <MCPServerConfigPanel />
           </Form.Item>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <Form.Item name="max_steps" label="最大步数">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Menu, Button, Space, Modal, message, Table, Tag, Popconfirm, Drawer, Input } from 'antd';
-import { PlusOutlined, SettingOutlined, ApiOutlined, LeftOutlined, SaveOutlined, HistoryOutlined, PlayCircleOutlined, DownloadOutlined, UploadOutlined, ExportOutlined, ToolOutlined, DatabaseOutlined, TeamOutlined } from '@ant-design/icons';
+import { PlusOutlined, SettingOutlined, ApiOutlined, LeftOutlined, SaveOutlined, HistoryOutlined, PlayCircleOutlined, DownloadOutlined, UploadOutlined, ExportOutlined, ToolOutlined, DatabaseOutlined, TeamOutlined, RocketOutlined, DashboardOutlined } from '@ant-design/icons';
 import type { Node } from '@xyflow/react';
 
 import WorkflowCanvas from './components/WorkflowEditor/WorkflowCanvas';
@@ -11,6 +11,8 @@ import ToolsPage from './pages/ToolsPage';
 import KnowledgeBasesPage from './pages/KnowledgeBasesPage';
 import AgentsPage from './pages/AgentsPage';
 import AgentChatPage from './pages/AgentChatPage';
+import SkillsPage from './pages/SkillsPage';
+import DashboardPage from './pages/DashboardPage';
 import { workflowApi, executionApi } from './services/api';
 import { useWorkflowStore } from './stores';
 import type { Workflow, WorkflowNode, Execution } from './types';
@@ -20,7 +22,7 @@ const { TextArea } = Input;
 
 const App: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [currentView, setCurrentView] = useState<'list' | 'editor' | 'tools' | 'knowledge_bases' | 'agents'>('list');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'list' | 'editor' | 'tools' | 'knowledge_bases' | 'agents' | 'skills'>('dashboard');
   const [chattingAgentId, setChattingAgentId] = useState<string | null>(null);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
@@ -30,6 +32,7 @@ const App: React.FC = () => {
   const [selectedExecutionId, setSelectedExecutionId] = useState<string | null>(null);
   const [executions, setExecutions] = useState<Execution[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [executionRefreshKey, setExecutionRefreshKey] = useState(0);
   const [currentWorkflow, setCurrentWorkflow] = useState<Workflow | null>(null);
   const [executeModalVisible, setExecuteModalVisible] = useState(false);
   const [executeInputData, setExecuteInputData] = useState('{}');
@@ -142,6 +145,7 @@ const App: React.FC = () => {
             clearInterval(pollExecution);
             const updatedExecs = await workflowApi.listExecutions(selectedWorkflowId);
             setExecutions(updatedExecs);
+            setExecutionRefreshKey(k => k + 1);
             if (execData.status === 'failed') {
               message.error(`执行失败: ${execData.error || '未知错误'}`);
             }
@@ -395,14 +399,19 @@ const App: React.FC = () => {
   };
 
   const menuItems = [
+    { key: 'dashboard', icon: <DashboardOutlined />, label: '仪表盘' },
     { key: 'workflows', icon: <ApiOutlined />, label: '工作流' },
     { key: 'agents', icon: <TeamOutlined />, label: 'Agent 助手' },
     { key: 'tools', icon: <ToolOutlined />, label: '工具管理' },
+    { key: 'skills', icon: <RocketOutlined />, label: 'Skill 管理' },
     { key: 'knowledge_bases', icon: <DatabaseOutlined />, label: '知识库' },
   ];
 
   const handleMenuClick = (key: string) => {
-    if (key === 'workflows') {
+    if (key === 'dashboard') {
+      setCurrentView('dashboard');
+      setChattingAgentId(null);
+    } else if (key === 'workflows') {
       setCurrentView('list');
     } else if (key === 'tools') {
       setCurrentView('tools');
@@ -410,6 +419,8 @@ const App: React.FC = () => {
       setCurrentView('knowledge_bases');
     } else if (key === 'agents') {
       setCurrentView('agents');
+    } else if (key === 'skills') {
+      setCurrentView('skills');
     }
   };
 
@@ -438,12 +449,12 @@ const App: React.FC = () => {
       {currentView !== 'editor' && (
         <LayoutSider width={220} style={{ background: 'linear-gradient(180deg, #12121a 0%, #0a0a0f 100%)', borderRight: '1px solid rgba(255,255,255,0.06)' }} collapsible collapsed={collapsed} trigger={null}>
           <div style={{ padding: '24px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            {!collapsed && <div style={{ color: '#f0f0f5', fontSize: 20, fontWeight: 600, letterSpacing: '-0.02em' }}><span style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Flux</span>Workflow</div>}
+            {!collapsed && <div onClick={() => { setCurrentView('dashboard'); setChattingAgentId(null); }} style={{ color: '#f0f0f5', fontSize: 20, fontWeight: 600, letterSpacing: '-0.02em', cursor: 'pointer' }}><span style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Flux</span>Workflow</div>}
             <Button type="text" icon={collapsed ? <ApiOutlined /> : <ApiOutlined />} onClick={() => setCollapsed(!collapsed)} style={{ color: '#71717a' }} />
           </div>
           <Menu 
             mode="inline" 
-            selectedKeys={[currentView]} 
+            selectedKeys={[currentView === 'dashboard' ? 'dashboard' : currentView]} 
             style={{ background: 'transparent', borderRight: 'none', marginTop: 12, color: '#a1a1aa' }} 
             items={menuItems}
             onClick={(e) => handleMenuClick(e.key)}
@@ -460,7 +471,9 @@ const App: React.FC = () => {
         </Header>
 
         <Content style={{ background: '#0a0a0f', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 56px)', overflow: 'hidden' }}>
-          {currentView === 'list' ? (
+          {currentView === 'dashboard' ? (
+            <DashboardPage onNavigate={(view) => { setCurrentView(view); setChattingAgentId(null); }} />
+          ) : currentView === 'list' ? (
             <div style={{ padding: 24 }}>
               <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: '#f0f0f5', fontSize: 16 }}>工作流列表</span>
@@ -493,9 +506,22 @@ const App: React.FC = () => {
                     return <Tag style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{s}</Tag>;
                   }},
                   { title: '更新时间', dataIndex: 'updated_at', key: 'updated_at', render: (t: string) => <span style={{ color: '#71717a' }}>{new Date(t).toLocaleString('zh-CN')}</span> },
-                  { title: '操作', key: 'action', width: 200, render: (_: any, r: Workflow) => (
+                  { title: '操作', key: 'action', width: 280, render: (_: any, r: Workflow) => (
                     <Space>
                       <Button type="link" size="small" icon={<PlayCircleOutlined />} onClick={() => handleEditWorkflow(r)}>编辑</Button>
+                      <Button
+                        type="link"
+                        size="small"
+                        icon={<PlayCircleOutlined />}
+                        onClick={() => {
+                          setSelectedWorkflowId(r.id);
+                          setExecuteInputData('{}');
+                          setExecuteModalVisible(true);
+                        }}
+                        disabled={r.status !== 'published'}
+                      >
+                        运行
+                      </Button>
                       <Button type="link" size="small" icon={<ExportOutlined />} onClick={() => handleOpenExportModal(r)}>导出</Button>
                       <Popconfirm title="确认删除?" onConfirm={() => handleDeleteWorkflow(r.id)}>
                         <Button type="text" size="small" danger>删除</Button>
@@ -511,13 +537,15 @@ const App: React.FC = () => {
             <KnowledgeBasesPage />
           ) : currentView === 'agents' ? (
             chattingAgentId ? (
-              <AgentChatPage 
-                agentId={chattingAgentId} 
-                onBack={() => setChattingAgentId(null)} 
+              <AgentChatPage
+                agentId={chattingAgentId}
+                onBack={() => setChattingAgentId(null)}
               />
             ) : (
               <AgentsPage onChat={(agentId) => setChattingAgentId(agentId)} />
             )
+          ) : currentView === 'skills' ? (
+            <SkillsPage />
           ) : (
             <div style={{ display: 'flex', height: 'calc(100vh - 56px)', background: 'radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 60%)' }}>
               <NodePalette onAddNode={handleAddNode} />
@@ -604,7 +632,7 @@ const App: React.FC = () => {
         {showExecutionHistory ? (
           <Table dataSource={executions} rowKey="id" columns={executionColumns} size="small" pagination={false} />
         ) : (
-          <ExecutionDetail executionId={selectedExecutionId} />
+          <ExecutionDetail executionId={selectedExecutionId} visible={traceDrawerVisible && !showExecutionHistory} refreshKey={executionRefreshKey} />
         )}
       </Drawer>
 

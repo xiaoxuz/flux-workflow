@@ -424,14 +424,14 @@ const KnowledgeBasesPage: React.FC = () => {
                   <Tag style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: '#a5b4fc' }}>
                     #{index + 1}
                   </Tag>
-                  {result.score !== undefined && (
+                  {result.score != null && (
                     <span style={{ color: '#71717a', fontSize: 12 }}>相似度: {result.score.toFixed(4)}</span>
                   )}
                 </div>
                 <div style={{ color: '#d4d4d8', fontSize: 13, lineHeight: 1.6 }}>
                   {result.content}
                 </div>
-                {Object.keys(result.metadata).length > 0 && (
+                {result.metadata && Object.keys(result.metadata).length > 0 && (
                   <div style={{ marginTop: 8, color: '#71717a', fontSize: 11 }}>
                     {JSON.stringify(result.metadata)}
                   </div>

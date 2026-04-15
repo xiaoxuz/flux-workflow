@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, Any, List
 from datetime import datetime
 
@@ -228,6 +228,108 @@ class KnowledgeBaseSearchResult(BaseModel):
     score: Optional[float] = None
 
 
+class AgentChatResponse(BaseModel):
+    answer: str
+    status: str
+    steps: List[dict] = []
+    total_steps: int = 0
+    elapsed_time: float = 0.0
+    error: Optional[str] = None
+    session_id: Optional[str] = None
+
+
+# ============================================================
+# Skill Schemas
+# ============================================================
+
+
+class SkillSummary(BaseModel):
+    name: str
+    description: str
+    disable_model_invocation: bool
+    user_invocable: bool
+    error: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+class SkillDetail(BaseModel):
+    name: str
+    description: str
+    content: str
+    disable_model_invocation: bool
+    user_invocable: bool
+    allowed_tools: List[str]
+    argument_hint: str
+    scripts: List[str]
+    references: List[str]
+    assets: List[str]
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+class SkillCreate(BaseModel):
+    name: str = Field(
+        ...,
+        min_length=1,
+        max_length=50,
+        pattern=r"^[a-z][a-z0-9-]*$",
+        description="仅允许小写字母、数字、连字符，必须以字母开头",
+    )
+    description: str = Field(..., min_length=1, max_length=200)
+    content: str = Field(..., min_length=1)
+    disable_model_invocation: bool = False
+    user_invocable: bool = True
+    allowed_tools: List[str] = []
+    argument_hint: str = ""
+    scripts: dict[str, str] = {}
+    references: dict[str, str] = {}
+    assets: dict[str, str] = {}
+
+
+class SkillUpdate(BaseModel):
+    description: Optional[str] = None
+    content: Optional[str] = None
+    disable_model_invocation: Optional[bool] = None
+    user_invocable: Optional[bool] = None
+    allowed_tools: Optional[List[str]] = None
+    argument_hint: Optional[str] = None
+    scripts: Optional[dict[str, str]] = None
+    references: Optional[dict[str, str]] = None
+    assets: Optional[dict[str, str]] = None
+
+
+# ============================================================
+# MCP Server Schemas
+# ============================================================
+
+
+class MCPServerConfig(BaseModel):
+    name: str
+    transport: str = "stdio"  # stdio, http, streamable_http
+    command: Optional[str] = None
+    args: Optional[List[str]] = None
+    env: Optional[dict] = None
+    url: Optional[str] = None
+    headers: Optional[dict] = None
+    tool_name_prefix: Optional[str] = None
+
+
+class MCPServerTestRequest(BaseModel):
+    server: MCPServerConfig
+
+
+class MCPServerTestResponse(BaseModel):
+    success: bool
+    tools: List[str] = []
+    error: Optional[str] = None
+
+
+# ============================================================
+# Agent Schemas (update skills field)
+# ============================================================
+
+
 class AgentCreate(BaseModel):
     name: str
     description: Optional[str] = None
@@ -237,6 +339,8 @@ class AgentCreate(BaseModel):
     api_key: Optional[str] = None
     system_prompt: Optional[str] = None
     tools: List[str] = []
+    skills: List[str] = []
+    mcp_servers: List[dict] = []
     max_steps: int = 10
     verbose: bool = False
 
@@ -250,6 +354,8 @@ class AgentUpdate(BaseModel):
     api_key: Optional[str] = None
     system_prompt: Optional[str] = None
     tools: Optional[List[str]] = None
+    skills: Optional[List[str]] = None
+    mcp_servers: Optional[List[dict]] = None
     max_steps: Optional[int] = None
     verbose: Optional[bool] = None
 
@@ -263,10 +369,17 @@ class AgentSchema(BaseModel):
     base_url: Optional[str] = None
     system_prompt: Optional[str] = None
     tools: List[str] = []
+    skills: List[str] = []
+    mcp_servers: List[dict] = []
     max_steps: int
     verbose: bool
     created_at: datetime
     updated_at: datetime
+
+    @field_validator('tools', 'skills', 'mcp_servers', mode='before')
+    @classmethod
+    def _ensure_list(cls, v):
+        return v if v is not None else []
 
 
 class AgentChatRequest(BaseModel):

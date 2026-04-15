@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, Float, Enu
 from sqlalchemy.orm import declarative_base
 from datetime import datetime
 import enum
+import uuid
 
 Base = declarative_base()
 
@@ -131,6 +132,16 @@ class KnowledgeBaseModel(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+class SkillModel(Base):
+    __tablename__ = "skills"
+
+    id = Column(String(64), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(64), unique=True, nullable=False, index=True)
+    description = Column(String(200), default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class AgentModel(Base):
     __tablename__ = "agents"
 
@@ -143,6 +154,8 @@ class AgentModel(Base):
     api_key = Column(String(512), nullable=True)
     system_prompt = Column(Text, nullable=True)
     tools = Column(JSON, default=[])
+    skills = Column(JSON, default=[])
+    mcp_servers = Column(JSON, default=[])
     max_steps = Column(Integer, default=10)
     verbose = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -4,7 +4,7 @@ import { SendOutlined, RobotOutlined, UserOutlined, ArrowLeftOutlined } from '@a
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { agentsApi } from '../services/api';
-import type { Agent, AgentChatResponse, ChatMessage } from '../types/agents';
+import type { Agent, ChatMessage } from '../types/agents';
 
 const { TextArea } = Input;
 
@@ -57,36 +57,66 @@ const AgentChatPage: React.FC<AgentChatPageProps> = ({ agentId, onBack }) => {
     setLoading(true);
 
     try {
-      const response: AgentChatResponse = await agentsApi.chat(
-        agent.id, 
+      await agentsApi.chatStream(
+        agent.id,
         userMessage.content,
-        undefined,
-        sessionId
+        sessionId,
+        // onStep: 实时追加 step 消息
+        (step: any) => {
+          const stepType = step.step_type || step.stepType;
+          const chatMsg: ChatMessage = {
+            role: 'assistant' as const,
+            content: step.content || '',
+            timestamp: new Date().toISOString(),
+            stepType: stepType as ChatMessage['stepType'],
+            toolName: step.tool_name,
+            toolInput: step.tool_input,
+            toolOutput: step.tool_output,
+          };
+          setMessages(prev => [...prev, chatMsg]);
+        },
+        // onDone: 设置最终结果
+        (data: any) => {
+          if (data.session_id && !sessionId) {
+            setSessionId(data.session_id);
+          }
+          // 检查最后一条消息是否已经是 final_answer，避免重复
+          setMessages(prev => {
+            const lastMsg = prev[prev.length - 1];
+            if (lastMsg && lastMsg.stepType === 'final_answer') {
+              return prev;
+            }
+            if (data.answer) {
+              const finalMsg: ChatMessage = {
+                role: 'assistant' as const,
+                content: data.answer,
+                timestamp: new Date().toISOString(),
+                stepType: 'final_answer',
+              };
+              return [...prev, finalMsg];
+            }
+            return prev;
+          });
+          setLoading(false);
+        },
+        // onError
+        (error: string) => {
+          const errorMessage: ChatMessage = {
+            role: 'assistant',
+            content: `错误: ${error}`,
+            timestamp: new Date().toISOString(),
+          };
+          setMessages(prev => [...prev, errorMessage]);
+          setLoading(false);
+        },
       );
-      
-      if (response.session_id && !sessionId) {
-        setSessionId(response.session_id);
-      }
-      
-      const stepMessages: ChatMessage[] = response.steps.map((step) => ({
-        role: 'assistant' as const,
-        content: step.content,
-        timestamp: new Date().toISOString(),
-        stepType: step.type as ChatMessage['stepType'],
-        toolName: step.tool_name,
-        toolInput: step.tool_input,
-        toolOutput: step.tool_output,
-      }));
-
-      setMessages(prev => [...prev, ...stepMessages]);
     } catch (error: any) {
       const errorMessage: ChatMessage = {
         role: 'assistant',
-        content: `错误: ${error.response?.data?.detail || error.message || '未知错误'}`,
+        content: `错误: ${error.message || '未知错误'}`,
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, errorMessage]);
-    } finally {
       setLoading(false);
     }
   };
@@ -149,6 +179,18 @@ const AgentChatPage: React.FC<AgentChatPageProps> = ({ agentId, onBack }) => {
             </Tag>
             <span style={{ marginLeft: 8 }}>{agent.model_name}</span>
           </div>
+          {agent.skills && agent.skills.length > 0 && (
+            <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+              {agent.skills.map(s => (
+                <Tag key={s} color="green" style={{ margin: 0, fontSize: 11 }}>{s}</Tag>
+              ))}
+            </div>
+          )}
+          {agent.mcp_servers && agent.mcp_servers.length > 0 && (
+            <Tag color="purple" style={{ marginTop: 4, fontSize: 11 }}>
+              MCP: {agent.mcp_servers.length}
+            </Tag>
+          )}
         </div>
       </div>
 
@@ -167,7 +209,7 @@ const AgentChatPage: React.FC<AgentChatPageProps> = ({ agentId, onBack }) => {
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 800, margin: '0 auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1100, margin: '0 auto' }}>
             {messages.map((msg, index) => {
               const isUser = msg.role === 'user';
               const isFinalAnswer = msg.stepType === 'final_answer';
@@ -211,7 +253,7 @@ const AgentChatPage: React.FC<AgentChatPageProps> = ({ agentId, onBack }) => {
                         border: '1px dashed rgba(255,255,255,0.08)',
                         borderRadius: 8,
                         padding: '10px 14px',
-                        maxWidth: 520,
+                        maxWidth: 900,
                         fontFamily: '"SF Mono", "Fira Code", monospace',
                         fontSize: 12,
                         color: 'rgba(255,255,255,0.5)',
@@ -235,7 +277,7 @@ const AgentChatPage: React.FC<AgentChatPageProps> = ({ agentId, onBack }) => {
                             {msg.toolName}
                           </span>
                         )}
-                        <span style={{ marginLeft: 8, color: 'rgba(255,255,255,0.4)' }}>
+                        <span style={{ marginLeft: 8, color: 'rgba(255,255,255,0.4)', flex: 1 }}>
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {msg.content}
                           </ReactMarkdown>
@@ -319,7 +361,7 @@ const AgentChatPage: React.FC<AgentChatPageProps> = ({ agentId, onBack }) => {
                     border: isUser ? 'none' : '1px solid rgba(255,255,255,0.08)',
                     borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                     padding: '10px 14px',
-                    maxWidth: 420,
+                    maxWidth: 900,
                     color: '#f0f0f5',
                     fontSize: 14,
                     lineHeight: 1.6,
@@ -431,7 +473,7 @@ const AgentChatPage: React.FC<AgentChatPageProps> = ({ agentId, onBack }) => {
         borderTop: '1px solid rgba(255,255,255,0.06)', 
         background: 'rgba(18,18,26,0.8)',
       }}>
-        <div style={{ maxWidth: 800, margin: '0 auto', display: 'flex', gap: 12 }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', gap: 12 }}>
           <TextArea
             value={input}
             onChange={(e) => setInput(e.target.value)}

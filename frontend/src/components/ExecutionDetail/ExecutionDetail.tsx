@@ -7,6 +7,8 @@ import type { Execution, TraceNode } from '../../types';
 
 interface ExecutionDetailProps {
   executionId: string | null;
+  visible?: boolean;
+  refreshKey?: number;
 }
 
 const statusColors: Record<string, string> = {
@@ -23,17 +25,17 @@ const statusBgColors: Record<string, string> = {
   failed: 'rgba(239,68,68,0.1)',
 };
 
-const ExecutionDetail: React.FC<ExecutionDetailProps> = ({ executionId }) => {
+const ExecutionDetail: React.FC<ExecutionDetailProps> = ({ executionId, visible, refreshKey }) => {
   const [execution, setExecution] = useState<Execution | null>(null);
   const [traceNodes, setTraceNodes] = useState<TraceNode[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (executionId) {
+    if (executionId && visible) {
       loadExecution(executionId);
       loadTrace(executionId);
     }
-  }, [executionId]);
+  }, [executionId, visible, refreshKey]);
 
   const loadExecution = async (id: string) => {
     setLoading(true);

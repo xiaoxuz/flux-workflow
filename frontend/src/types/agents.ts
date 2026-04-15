@@ -1,3 +1,14 @@
+export interface MCPServerConfig {
+  name: string;
+  transport: string;
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  url?: string;
+  headers?: Record<string, string>;
+  tool_name_prefix?: string;
+}
+
 export interface Agent {
   id: string;
   name: string;
@@ -8,6 +19,8 @@ export interface Agent {
   api_key?: string;
   system_prompt?: string;
   tools: string[];
+  skills: string[];
+  mcp_servers: MCPServerConfig[];
   max_steps: number;
   verbose: boolean;
   created_at: string;
@@ -23,6 +36,8 @@ export interface AgentCreate {
   api_key?: string;
   system_prompt?: string;
   tools?: string[];
+  skills?: string[];
+  mcp_servers?: MCPServerConfig[];
   max_steps?: number;
   verbose?: boolean;
 }
@@ -36,6 +51,8 @@ export interface AgentUpdate {
   api_key?: string;
   system_prompt?: string;
   tools?: string[];
+  skills?: string[];
+  mcp_servers?: MCPServerConfig[];
   max_steps?: number;
   verbose?: boolean;
 }
